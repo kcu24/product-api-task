@@ -1,0 +1,1550 @@
+{
+	"info": {
+		"_postman_id": "bfb52b5b-eef5-421f-99fc-85dca542de6e",
+		"name": "Product API Test",
+		"description": "Collection to test ProductController endpoints using Basic Auth with users admin/admin123 and user/user123",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9672385"
+	},
+	"item": [
+		{
+			"name": "createProduct",
+			"item": [
+				{
+					"name": "Create Product sucessfully (ADMIN only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response is valid product object\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    const expectedCode = pm.environment.get(\"product_code\");",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"id\");",
+									"    pm.expect(jsonData.id).to.be.a(\"number\");",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"code\", expectedCode);",
+									"    pm.expect(jsonData).to.have.property(\"name\", \"Test Product\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInEur\", 100.00);",
+									"    pm.expect(jsonData).to.have.property(\"priceInUsd\", 115.00);",
+									"    pm.expect(jsonData).to.have.property(\"available\", true);",
+									"});",
+									"",
+									"pm.environment.set(\"product_id\", pm.response.json().id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{product_code}}\",\n  \"name\": \"Test Product\",\n  \"priceInEur\": 10.50,\n  \"available\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product - Forbidden Create Product (user should be blocked since it's not ADMIN)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response has expected structure and values\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 403);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Forbidden\");",
+									"    pm.expect(jsonData).to.have.property(\"message\", \"Access Denied\");",
+									"    ",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{normalUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{normalUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"0000000000\",\n  \"name\": \"Unauthorized Product\",\n  \"priceInEur\": 50,\n  \"available\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create product - not logged in user - user is blocked",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response has expected structure and message\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Unauthorized - Invalid credentials or not logged in.\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{invalidUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{invalidUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"0000000000\",\n  \"name\": \"Unauthorized Product\",\n  \"priceInEur\": 50,\n  \"available\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product - bad requesst - duplicate code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check status code",
+									"pm.test(\"Status code is 409\", function () {",
+									"    pm.response.to.have.status(409);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check JSON structure",
+									"pm.test(\"Response has required fields\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 409);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Conflict\");",
+									"    pm.expect(jsonData).to.have.property(\"message\");",
+									"});",
+									"",
+									"// Check message contains expected text pattern",
+									"pm.test(\"Message contains 'Product with the code' and code\", function () {",
+									"    const message = jsonData.message;",
+									"    pm.expect(message).to.match(/^Product with the code \\w+ already exists$/);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"JmXIy4OEd0\",\n  \"name\": \"Test Product\",\n  \"priceInEur\": 100,\n  \"available\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product - bad requesst - code length < 10",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check status code",
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check JSON structure",
+									"pm.test(\"Response has required fields\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 400);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Bad Request\");",
+									"    pm.expect(jsonData).to.have.property(\"message\");",
+									"    pm.expect(jsonData.message).to.be.an(\"array\");",
+									"});",
+									"",
+									"// Check the message content",
+									"pm.test(\"Message contains expected validation message\", function () {",
+									"    pm.expect(jsonData.message).to.include(\"Code attribute should be 10 characters long\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"123\",\n  \"name\": \"Test Product\",\n  \"priceInEur\": 100,\n  \"available\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product - bad requesst - code length > 10",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check status code",
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"// Parse response JSON",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check JSON structure",
+									"pm.test(\"Response has required fields\", function () {",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 400);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Bad Request\");",
+									"    pm.expect(jsonData).to.have.property(\"message\");",
+									"    pm.expect(jsonData.message).to.be.an(\"array\");",
+									"});",
+									"",
+									"// Check the message content",
+									"pm.test(\"Message contains expected validation message\", function () {",
+									"    pm.expect(jsonData.message).to.include(\"Code attribute should be 10 characters long\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"123456789011111\",\n  \"name\": \"Test Product\",\n  \"priceInEur\": 100,\n  \"available\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product - bad requesst - name not defined and code too long",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", () => {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Response has required fields\", () => {",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 400);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Bad Request\");",
+									"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"array\");",
+									"});",
+									"",
+									"pm.test(\"Message contains expected validation messages\", () => {",
+									"    pm.expect(jsonData.message).to.include(\"Name attribute should not be empty\");",
+									"    pm.expect(jsonData.message).to.include(\"Code attribute should be 10 characters long\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"123456789011111\",\n  \"name\": \"\",\n  \"priceInEur\": 100,\n  \"available\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product - bad requesst - price in eur lower than 0",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", () => {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Response has required fields\", () => {",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 400);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Bad Request\");",
+									"    pm.expect(jsonData).to.have.property(\"message\").that.is.an(\"array\");",
+									"});",
+									"",
+									"pm.test(\"Message contains price validation error\", () => {",
+									"    pm.expect(jsonData.message).to.include(\"Price in EUR attribute should be greater than or equal to 0\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{product_code}}\",\n  \"name\": \"MyProduct\",\n  \"priceInEur\": -5,\n  \"available\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "getProductById",
+			"item": [
+				{
+					"name": "Get Product by ID - normal user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Response has all required fields with correct types\", () => {",
+									"    pm.expect(jsonData).to.have.property(\"id\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"code\").that.is.a(\"string\").with.lengthOf(10);",
+									"    pm.expect(jsonData).to.have.property(\"name\").that.is.a(\"string\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInEur\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInUsd\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"available\").that.is.a(\"boolean\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{normalUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{normalUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-id/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-id",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID - admin user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Response has all required fields with correct types\", () => {",
+									"    pm.expect(jsonData).to.have.property(\"id\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"code\").that.is.a(\"string\").with.lengthOf(10);",
+									"    pm.expect(jsonData).to.have.property(\"name\").that.is.a(\"string\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInEur\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInUsd\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"available\").that.is.a(\"boolean\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-id/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-id",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID - not logged in",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response has expected structure and message\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Unauthorized - Invalid credentials or not logged in.\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-id/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-id",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID - not valid user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response has expected structure and message\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Unauthorized - Invalid credentials or not logged in.\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{invalidUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{invalidUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-id/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-id",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by non exixst id - product not found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response has correct 404 error body\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 404);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Not Found\");",
+									"    pm.expect(jsonData).to.have.property(\"message\");",
+									"",
+									"    pm.expect(jsonData.message).to.match(/^Product with given id \\d+ not found$/);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{normalUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{normalUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-id/135235",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-id",
+								"135235"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "getProductByCode",
+			"item": [
+				{
+					"name": "Get Product by code - normal user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Response has all required fields with correct types\", () => {",
+									"    pm.expect(jsonData).to.have.property(\"id\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"code\").that.is.a(\"string\").with.lengthOf(10);",
+									"    pm.expect(jsonData).to.have.property(\"name\").that.is.a(\"string\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInEur\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInUsd\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"available\").that.is.a(\"boolean\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{normalUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{normalUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-code/5252635743",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-code",
+								"5252635743"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by code - admin user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Response has all required fields with correct types\", () => {",
+									"    pm.expect(jsonData).to.have.property(\"id\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"code\").that.is.a(\"string\").with.lengthOf(10);",
+									"    pm.expect(jsonData).to.have.property(\"name\").that.is.a(\"string\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInEur\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"priceInUsd\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"available\").that.is.a(\"boolean\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-code/5252635743",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-code",
+								"5252635743"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by code - not logged in",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response has expected structure and message\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Unauthorized - Invalid credentials or not logged in.\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-code/5252635743",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-code",
+								"5252635743"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by code - not valid user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response has expected structure and message\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Unauthorized - Invalid credentials or not logged in.\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{invalidUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{invalidUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-code/5252635743",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-code",
+								"5252635743"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by non exixst code - product not found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response has correct 404 error body\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"status\", 404);",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Not Found\");",
+									"    pm.expect(jsonData).to.have.property(\"message\");",
+									"",
+									"    pm.expect(jsonData.message).to.match(/^Product with the given code '135235' not found/);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{normalUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{normalUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/by-code/135235",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"by-code",
+								"135235"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "listAllProducts",
+			"item": [
+				{
+					"name": "List All Products (Pagination) - ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct pagination structure\", () => {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"items\").that.is.an(\"array\").with.lengthOf(10);",
+									"    pm.expect(jsonData).to.have.property(\"totalElements\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"totalPages\").that.is.a(\"number\");",
+									"});",
+									"",
+									"pm.test(\"Each item in items array has expected properties with valid types\", () => {",
+									"    const items = pm.response.json().items;",
+									"",
+									"    items.forEach(item => {",
+									"        pm.expect(item).to.have.property(\"id\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"code\").that.is.a(\"string\");",
+									"        pm.expect(item).to.have.property(\"name\").that.is.a(\"string\");",
+									"        pm.expect(item).to.have.property(\"priceInEur\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"priceInUsd\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"available\").that.is.a(\"boolean\");",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products?page=0&size=10&sortBy=id&sortDir=ASC",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDir",
+									"value": "ASC"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Products (Pagination) - non ADMIN without pagination parameters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct pagination structure\", () => {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"items\").that.is.an(\"array\").with.lengthOf(10);",
+									"    pm.expect(jsonData).to.have.property(\"totalElements\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"totalPages\").that.is.a(\"number\");",
+									"});",
+									"",
+									"pm.test(\"Each item in items array has expected properties with valid types\", () => {",
+									"    const items = pm.response.json().items;",
+									"",
+									"    items.forEach(item => {",
+									"        pm.expect(item).to.have.property(\"id\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"code\").that.is.a(\"string\");",
+									"        pm.expect(item).to.have.property(\"name\").that.is.a(\"string\");",
+									"        pm.expect(item).to.have.property(\"priceInEur\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"priceInUsd\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"available\").that.is.a(\"boolean\");",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{normalUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{normalUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Products (Pagination) - second page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct pagination structure\", () => {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"items\").that.is.an(\"array\");",
+									"    pm.expect(jsonData).to.have.property(\"totalElements\").that.is.a(\"number\");",
+									"    pm.expect(jsonData).to.have.property(\"totalPages\").that.is.a(\"number\");",
+									"});",
+									"",
+									"pm.test(\"Each item in items array has expected properties with valid types\", () => {",
+									"    const items = pm.response.json().items;",
+									"",
+									"    items.forEach(item => {",
+									"        pm.expect(item).to.have.property(\"id\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"code\").that.is.a(\"string\");",
+									"        pm.expect(item).to.have.property(\"name\").that.is.a(\"string\");",
+									"        pm.expect(item).to.have.property(\"priceInEur\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"priceInUsd\").that.is.a(\"number\");",
+									"        pm.expect(item).to.have.property(\"available\").that.is.a(\"boolean\");",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "user",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "user123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products?page=1&size=10&sortBy=id&sortDir=ASC",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDir",
+									"value": "ASC"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Products (Pagination) - second page invalid user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response has expected structure and message\", function () {",
+									"    const jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property(\"error\", \"Unauthorized - Invalid credentials or not logged in.\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{invalidUser_password}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{invalidUser_username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products?page=1&size=10&sortBy=id&sortDir=ASC",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDir",
+									"value": "ASC"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"function generateRandomCode(length) {",
+					"    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+					"    let result = '';",
+					"    for (let i = 0; i < length; i++) {",
+					"        result += chars.charAt(Math.floor(Math.random() * chars.length));",
+					"    }",
+					"    return result;",
+					"}",
+					"",
+					"const randomCode = generateRandomCode(10);",
+					"pm.environment.set(\"product_code\", randomCode);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "admin_username",
+			"value": "admin",
+			"type": "string"
+		},
+		{
+			"key": "admin_password",
+			"value": "admin123",
+			"type": "string"
+		},
+		{
+			"key": "normalUser_username",
+			"value": "user",
+			"type": "string"
+		},
+		{
+			"key": "normalUser_password",
+			"value": "user123",
+			"type": "string"
+		},
+		{
+			"key": "invalidUser_username",
+			"value": "something",
+			"type": "string"
+		},
+		{
+			"key": "invalidUser_password",
+			"value": "1234",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,19 @@
+package com.ingemark.productsmgmtapp.config;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+
+import java.io.IOException;
+
+public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+    private static final String ERROR_MSG = "{\"error\": \"Unauthorized - Invalid credentials or not logged in.\"}";
+    @Override
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+                         AuthenticationException authException) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write(ERROR_MSG);
+    }
+}

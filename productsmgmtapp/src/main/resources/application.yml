@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: productsmgmt
+  datasource:
+    url: jdbc:postgresql://localhost:5432/myProductDatabase
+    username: myuser
+    password: secret
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+exchange:
+  hnb:
+    base-url: https://api.hnb.hr
+    uri-path: /tecajn-eur/v3?valuta=
